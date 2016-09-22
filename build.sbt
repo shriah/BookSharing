@@ -16,8 +16,10 @@ libraryDependencies ++= Seq(
     "com.typesafe.play" %% "play-slick" % "2.0.0",
     "com.typesafe.play" %% "play-slick-evolutions" % "2.0.0",
     "com.h2database" % "h2" % "1.4.187",
+    "mysql" % "mysql-connector-java" % "5.1.34",
     "org.scalatestplus.play" %% "scalatestplus-play" % "1.5.0" % "test",
     "org.webjars" % "swagger-ui" % "2.2.0",
+    "com.typesafe.slick" %% "slick-codegen" % "3.1.1",
     specs2 % Test
 )
 

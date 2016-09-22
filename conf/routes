@@ -1,12 +1,8 @@
-
-
-
-GET     /                                    controllers.Application.listProjects
-PUT     /projects/:name                      controllers.Application.createProject(name: String)
-GET     /projects/list                       controllers.Application.listProjects
-GET     /projects/:id                        controllers.Application.projects(id: Long)
-PUT     /projects/:id/:name                  controllers.Application.addTaskToProject(name: String, id: Long)
-PATCH   /tasks/:id                           controllers.Application.modifyTask(id: Long, color:Option[String] ?= None)
-GET   	/docs/swagger-ui/*file               controllers.Assets.at(path:String="/public/lib/swagger-ui", file:String)
+GET     /									 controllers.Application.listBooks
+GET     /books/list                          controllers.Application.listBooks
+GET     /books/:id                           controllers.Application.books(id: Int)
+PUT     /books                               controllers.Application.createBook
+PATCH   /books/:id                           controllers.Application.modifyBook(id: Int, name:Option[String] ?= None, edition: Option[String] ?= None, binding: Option[String] ?= None, published: Option[String] ?= None, price: Option[Double], media: Option[String] ?= None)
+DELETE  /books/:id                           controllers.Application.deleteBook(id: Int)
+GET     /docs/swagger-ui/*file               controllers.Assets.at(path:String="/public/lib/swagger-ui", file:String)
 GET     /assets/*file                        controllers.Assets.at(path="/public", file)
-DELETE  /projects/:name                      controllers.Application.delete(name: String)

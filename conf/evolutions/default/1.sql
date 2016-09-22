@@ -1,25 +1,19 @@
 # DC schema
  
 # --- !Ups
-
-
-CREATE TABLE PROJECT (
-    ID integer NOT NULL AUTO_INCREMENT PRIMARY KEY,
-    NAME varchar(255) NOT NULL
-);
-
-
-CREATE TABLE TASK (
-    ID integer NOT NULL AUTO_INCREMENT PRIMARY KEY,
-    COLOR varchar(255) NOT NULL,
-    STATUS varchar(255) NOT NULL,
-    PROJECT integer NOT NULL,
-    FOREIGN KEY (PROJECT) REFERENCES PROJECT (ID)
-);
+CREATE TABLE `books` (
+  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+  `name` varchar(200) NOT NULL DEFAULT '',
+  `edition` varchar(200) DEFAULT '',
+  `binding` varchar(200) DEFAULT '',
+  `published` date DEFAULT NULL,
+  `price` double DEFAULT NULL,
+  `media` varchar(200) DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 
  
 # --- !Downs
 
-DROP TABLE TASK;
-DROP TABLE PROJECT;
+DROP TABLE books;

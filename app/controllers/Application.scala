@@ -1,52 +1,69 @@
 package controllers
 
+import scala.concurrent.Future
+
 import javax.inject.Inject
+import models.BooksRow
 
-import models.{ProjectRepo, TaskRepo}
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
-import play.api.mvc.{Action, Controller}
-import play.api.libs.json._
-import play.api.libs.functional.syntax._
-import models.Project
+import play.api.libs.functional.syntax.toFunctionalBuilderOps
+import play.api.libs.functional.syntax.unlift
+import play.api.libs.json.JsPath
+import play.api.libs.json.JsValue
+import play.api.libs.json.Json
+import play.api.libs.json.Writes
+import play.api.mvc.Action
+import play.api.mvc.AnyContent
+import play.api.mvc.Controller
+import org.joda.time.DateTime
+import java.sql.Date
+import service.ComponentRegistry
 
-class Application @Inject()( projectRepo: ProjectRepo, taskRepo: TaskRepo)
-                           extends Controller {
-  implicit val projectWrites: Writes[Project] = (
-    (JsPath \ "id").write[Long] and
-    (JsPath \ "name").write[String]
-  )(unlift(Project.unapply))
+
+class Application extends Controller {
+  val componentRegistry = new ComponentRegistry();
+
+
+  def listBooks = Action.async { implicit request =>
+    val booksFuture = componentRegistry.booksService.all
+    booksFuture.map( books => Ok(Json.toJson(books)) )
+    
+  }
   
-  def addTaskToProject(color: String, projectId: Long) = Action.async { implicit rs =>
-    projectRepo.addTask(color, projectId)
-      .map{ _ =>  Redirect(routes.Application.projects(projectId)) }
-  }
-
-  def modifyTask(taskId: Long, color: Option[String]) = Action.async { implicit rs =>
-    taskRepo.partialUpdate(taskId, color, None, None).map(i =>
-    Ok(s"Rows affected : $i"))
-  }
-  def createProject(name: String)= Action.async { implicit rs =>
-    projectRepo.create(name)
-      .map(id => Ok(s"project $id created") )
-  }
-
-  def listProjects = Action.async { implicit rs =>
-    val projectsFuture = projectRepo.all
-    render.async {
-      case Accepts.Html () => projectsFuture.map(projects => Ok(views.html.projects(projects)))
-      case Accepts.Json () => projectsFuture.map(projects => Ok(Json.toJson(projects)))
+  def createBook = Action.async { implicit request =>
+    val body: AnyContent = request.body
+    val jsonBody: Option[JsValue] = body.asJson
+    jsonBody.map { json =>
+      json.validate[BooksRow].map { book =>
+          componentRegistry.booksService.create(book).map { id =>
+           Ok("Created Book")
+         }
+      }.getOrElse{
+       Future.successful(BadRequest("Failed to parse book"))
+      }
+        
+    }.getOrElse{
+      Future.successful(BadRequest("Expecting application/json request body"))
     }
+    
+  }
+  def modifyBook(id: Int, name:Option[String], edition: Option[String] , binding: Option[String], published: Option[String], price: Option[Double], media: Option[String]) = Action.async{ implicit response =>
+    val publishedDate = published.map( publishedValue => new Date(DateTime.parse(publishedValue).getMillis))
+     componentRegistry.booksService.partialUpdate(id, name, edition, binding, publishedDate, price, media).map { Int =>
+      Ok("Book Updated")
+    }
+  
   }
 
-  def projects(id: Long) = Action.async { implicit rs =>
-    for {
-      Some(project) <-  projectRepo.findById(id)
-      tasks <- taskRepo.findByProjectId(id)
-    } yield Ok(views.html.project(project, tasks))
+  def deleteBook(id: Int) = Action.async { implicit request =>
+     componentRegistry.booksService.delete(id).map(num => Ok("Deleted Book"))
   }
-
-  def delete(name: String) = Action.async { implicit rs =>
-    projectRepo.delete(name).map(num => Ok(s"$num projects deleted"))
+  def books(id: Int) = Action.async { implicit request => 
+     componentRegistry.booksService.findById(id).map { bookOption => 
+      bookOption
+        .map(book => Ok(Json.toJson(book)))
+        .getOrElse(NotFound)
+    }
   }
 
 }
